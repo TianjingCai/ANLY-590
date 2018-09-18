@@ -27,7 +27,7 @@ X.info()
 
 
 # Split data into training and test sets
-X_train, X_test , y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
+X_train, X_test , y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
 
 def plot_coefs(coefs, name):
     plt.figure()
@@ -38,6 +38,7 @@ def plot_coefs(coefs, name):
     plt.xlabel('log alpha')
     plt.ylabel('coefficients')
     plt.title('coefficient trajectories for ' + name + ' regression at each alpha value')
+    plt.legend(X.columns.values)
     
 ''' 
 LASSO regression
@@ -62,7 +63,7 @@ LASSO_best_coefs = pd.Series(lasso.coef_, index=X.columns)
 print("Best coefficients for LASSO regression: \n" , LASSO_best_coefs)   
 
 ### For the result, we could only see the last two remaining predictors or the last 4 remaining predictors. 
-### The last four remaining predictors are Hits, Walks, CRuns and CRBI. When alpha = 0.074, all predictors except CBRI remain.
+### The last four remaining predictors are Hits, Walks, CRuns and CRBI. When alpha = 0.049, all predictors remain.
 ### 
 '''
 Ridge regression 
@@ -92,6 +93,7 @@ best_ridge_MSE = mean_squared_error(y_test, ridge4.predict(X_test))
 ridge_best_coefs = pd.Series(ridge4.coef_, index=X.columns)
 print("Best coefficients for ridge regression: \n" , ridge_best_coefs)
 
+### The best penalty parameter for ridge regression is 0.0087.
 
 # 2.
 '''
