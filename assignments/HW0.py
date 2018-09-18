@@ -15,6 +15,7 @@ from sklearn.preprocessing import scale
 from sklearn import cross_validation
 from sklearn.linear_model import Ridge, RidgeCV, Lasso, LassoCV
 from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split
 
 df = pd.read_csv('Hitters.csv').dropna()
 df = df.rename(columns = {'Unnamed: 0': 'Player'})
@@ -25,7 +26,8 @@ X = df.drop(['Player','Salary', 'League', 'Division', 'NewLeague'], axis = 1).as
 X.info()
 
 
-
+# Split data into training and test sets
+X_train, X_test , y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
 
 def plot_coefs(coefs, name):
     plt.figure()
@@ -42,24 +44,26 @@ LASSO regression
 '''
 
 lasso = Lasso(max_iter=10000, normalize=True)
-coefs = []
+coefs_lasso = []
+alphas = 10**np.linspace(10,-2,100)*0.5
 for a in alphas:
     lasso.set_params(alpha=a)
     lasso.fit(scale(X), y)
-    coefs.append(lasso.coef_)
-plot_coefs(coefs, 'LASSO')
+    coefs_lasso.append(lasso.coef_)
+plot_coefs(coefs_lasso, 'LASSO')
 
 lassocv = LassoCV(alphas=None, cv=10, max_iter=100000, normalize=True)
-lassocv.fit(X, y)
+lassocv.fit(X_train, y_train)
 LASSO_best_alpha = lassocv.alpha_
 lasso.set_params(alpha=LASSO_best_alpha) # fit LASSO regression with best alpha value after perform 10 folds CV
-lasso.fit(X, y)
-best_LASSO_MSE = mean_squared_error(y, lasso.predict(X))
+lasso.fit(X_train, y_train)
+best_LASSO_MSE = mean_squared_error(y_test, lasso.predict(X_test))
 LASSO_best_coefs = pd.Series(lasso.coef_, index=X.columns)
 print("Best coefficients for LASSO regression: \n" , LASSO_best_coefs)   
 
-
-
+### For the result, we could only see the last two remaining predictors or the last 4 remaining predictors. 
+### The last four remaining predictors are Hits, Walks, CRuns and CRBI. When alpha = 0.074, all predictors except CBRI remain.
+### 
 '''
 Ridge regression 
 '''
@@ -67,22 +71,22 @@ Ridge regression
 alphas = 10**np.linspace(10,-2,100)*0.5 # generate 100 alphas values
 alphas
 ridge = Ridge(normalize=True)
-coefs = []
+coefs_ridge = []
 for a in alphas:
     ridge.set_params(alpha=a)
     ridge.fit(X, y)
-    coefs.append(ridge.coef_)
+    coefs_ridge.append(ridge.coef_)
 
-plot_coefs(coefs, 'ridge') # plot coefs for each alpha value
+plot_coefs(coefs_ridge, 'ridge') # plot coefs for each alpha value
 
 
 ridgecv = RidgeCV(alphas=alphas, scoring='mean_squared_error', normalize=True, cv = 10)
-ridgecv.fit(X, y)
+ridgecv.fit(X_train, y_train)
 ridge_best_alpha = ridgecv.alpha_
 
 ridge4 = Ridge(alpha=ridge_best_alpha, normalize=True) # fit ridge regression with best alpha value after perform 10 folds CV
-ridge4.fit(X, y)
-best_ridge_MSE = mean_squared_error(y, ridge4.predict(X))
+ridge4.fit(X_train, y_train)
+best_ridge_MSE = mean_squared_error(y_test, ridge4.predict(X_test))
 
 
 ridge_best_coefs = pd.Series(ridge4.coef_, index=X.columns)
